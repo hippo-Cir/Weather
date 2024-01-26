@@ -1,6 +1,6 @@
 from tkinter import *
 import tkinter as tk
-from geopy.geocoders import Nominatim
+from geopy.geocoders import Photon
 from tkinter import ttk,messagebox
 from timezonefinder import TimezoneFinder
 from datetime import datetime
@@ -12,17 +12,38 @@ root.title("Weather App")
 root.geometry("900x500+300+200")
 root.resizable(False,False)
 
+
 def getWeather():
     city = textfield.get()
 
-    geolocator = Nominatim(user_agent="geoapiExercises")
+    geolocator = Photon(user_agent="geoapiExercises")
     location = geolocator.geocode(city)
-    obj=TimezoneFinder()
-    result=obj.timezone_at(lng=location.longitude,lat=location.latitude)
-    print(result)
+    obj = TimezoneFinder()
+    result = obj.timezone_at(lng=location.longitude, lat=location.latitude)
 
+    home = pytz.timezone(result)
+    local_time = datetime.now(home)
+    current_time = local_time.strftime("%H:%M")
+    clock.config(text=current_time)
+    name.config(text="CURRENT WEATHER")
 
+    # weather
+    api = "https://api.openweathermap.org/data/2.5/weather?q="+ city +"&appid=06f773526503058b1db2c52164fc0a4b"
+    json_data = requests.get(api).json()
+    condition = json_data['weather'][0]['main']
+    description = json_data['weather'][0]['description']
+    temp = int(json_data['main']['temp']-273.15)
+    pressure = json_data['main']['pressure']
+    humidity = json_data['main']['humidity']
+    wind = json_data['wind']['speed']
 
+    t.config(text=(temp, "°"))
+    c.config(text=(condition, "|", "FEELS", "LIKE",temp, "°"))
+
+    w.config(text=(wind))
+    h.config(text=(humidity))
+    d.config(text=(description))
+    p.config(text=(pressure))
 
 #Recherche
 Search_image=PhotoImage(file="Copy of search.png")
@@ -57,10 +78,17 @@ label3.place(x=430,y=400)
 label4=Label(root,text="PRESSURE",font=("Helvetica",15,"bold"),fg="white",bg="#1ab5ef")
 label4.place(x=650,y=400)
 
-t=Label(text="...",font=("arial",20,"bold"),bg="#1ab5ef")
+t=Label(font=("arial",70,"bold"),fg="#ee666d")
 t.place(x=400,y=150)
 c=Label(font=("arial",15,"bold"))
 c.place(x=400,y=250)
+
+name=Label(root,font=("arial",15,"bold"))
+name.place(x=30,y=100)
+clock=Label(root,font=("Helvetica",20))
+clock.place(x=30,y=130)
+
+
 
 w=Label(text="...",font=("arial",20,"bold"),bg="#1ab5ef")
 w.place(x=120,y=430)
